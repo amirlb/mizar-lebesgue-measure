@@ -140,8 +140,7 @@ proof
         hence thesis;
       end;
       suppose c = +infty;
-        then contradiction by ThInftyNotLowerBound;
-::>                         *4
+        then contradiction by A2, ThInftyNotLowerBound;
         hence thesis;
       end;
       suppose A6: c in REAL;
@@ -150,15 +149,15 @@ proof
         set b = (a + c) / 2;
         a + c > a + a by A5, XREAL_1:6;
         then (a + c) / 2 > (a + a) / 2 by XREAL_1:74;
-        then A6: b > a by XREAL_1:74;
+        then A6: b > a;
         a + c < c + c by A5, XREAL_1:6;
         then (a + c) / 2 < (c + c) / 2 by XREAL_1:74;
         then b < c;
         hence contradiction by A1, A6, XXREAL_2:def 2;
       end;
   end;
-  thus thesis;
-::>         *4
+  inf X is LowerBound of X by XXREAL_2:def 4;
+  hence inf X <= a by A3;
 end;
 
 theorem ThSingletonIsThin:
