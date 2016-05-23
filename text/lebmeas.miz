@@ -82,13 +82,20 @@ proof
   hence thesis;
 end;
 
-theorem ThEmptySetMeasureZero:
-  L_mi.({}REAL) = 0 by VALUED_0:def 19;
+theorem ThEmptySetIsThin:
+  OS_Meas.{} = 0
+proof
+  OS_Meas is zeroed by MEASURE4:def 1;
+  hence thesis by VALUED_0:def 19;
+end;
 
 registration
   cluster empty -> lebesgue_measurable for Subset of REAL;
-  coherence by ThThinIsMeasurable, ThEmptySetMeasureZero;
+  coherence by ThThinIsMeasurable, ThEmptySetIsThin;
 end;
+
+theorem ThEmptySetMeasureZero:
+  L_mi.{} = 0 by VALUED_0:def 19;
 
 theorem ThInftyNotLowerBound:
   for X being ext-real-membered set st (ex x being Real st x in X)
