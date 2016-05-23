@@ -16,12 +16,14 @@ environ
       TARSKI, ORDINAL2, XXREAL_0, NAT_1, XXREAL_2, ORDINAL1, XBOOLE_0,
       ZFMISC_1, FUNCOP_1, MEASURE5, FUNCT_2, SUPINF_1, MCART_1, MEASURE4,
       REAL_1, PROB_1, MEASURE1, MEASURE7, FUNCT_7, XCMPLX_0, MEMBERED,
-      LEBMEAS;
+      LEBMEAS, VALUED_0;
  notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, DOMAIN_1, ORDINAL1,
       NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0, XXREAL_3, RELAT_1, FUNCT_1,
+      VALUED_0,
       RELSET_1, PARTFUN1, FUNCT_2, FUNCOP_1, NAT_1, PROB_1, XXREAL_2, SUPINF_1,
       SUPINF_2, MEASURE1, MEASURE4, MEASURE5, RECDEF_1, MEASURE7, MEMBERED;
  constructors PARTFUN1, DOMAIN_1, FUNCOP_1, NAT_1, MEASURE4, MEASURE5,
+      VALUED_0,
       RECDEF_1, SUPINF_1, XREAL_0, RELSET_1, XXREAL_2, MEASURE1, PROB_2,
       MEASURE7;
  registrations XBOOLE_0, SUBSET_1, ORDINAL1, FUNCT_2, NUMBERS, XREAL_0,
@@ -35,14 +37,15 @@ environ
  theorems TARSKI, SUPINF_2, MEASURE1, FUNCT_1, MEASURE5, MEASURE6, ZFMISC_1,
       FUNCT_2, NAT_1, XBOOLE_0, XBOOLE_1, FUNCOP_1, XXREAL_0, ORDINAL1,
       XXREAL_2, XXREAL_3, XTUPLE_0, MEASURE7, PROB_1, MEASURE4, XREAL_0,
-      SUBSET_1, XREAL_1;
+      SUBSET_1, XREAL_1, VALUED_0;
  schemes FUNCT_2, NAT_1, BINOP_2, SUBSET_1, XBOOLE_0, XFAMILY;
 
 begin
 
 definition
   let A be Subset of REAL;
-  attr A is lebesgue_measurable means :Def1: A in Lmi_sigmaFIELD;
+  attr A is lebesgue_measurable means :Def1:
+    A in Lmi_sigmaFIELD;
 end;
 
 registration
@@ -79,39 +82,12 @@ proof
   hence thesis;
 end;
 
-theorem EmptySetMeasureZero: L_mi.({}REAL) = 0
-proof
-  A1: {}REAL is lebesgue_measurable;
-  A2: L_mi.({}REAL) >= 0 by A1, MEASURE1:def 2;
-  deffunc C() = NAT;
-  deffunc D() = bool REAL;
-  defpred P[object, object] means $2 = {}REAL;
-  A3: for n being Element of NAT holds
-      ex xs being Element of bool REAL st P[n,xs];
-  consider F being Function of NAT, bool REAL such that
-  A4: for n being Element of NAT holds P[n, F.n] from FUNCT_2:sch 3(A3);
-  A5: for n being object st n in NAT holds F.n = {}REAL by A4;
-  A6: {}REAL c= union (rng F) by FUNCT_2:8, FUNCT_2:92, FUNCOP_1:11, FUNCOP_1:13;
-  A7: for n being Element of NAT holds F.n is Interval
-  proof
-    let n be Element of NAT;
-    F.n is empty by A5;
-    hence F.n is Interval;
-  end;
-  reconsider G = F as Interval_Covering of {}REAL by MEASURE7:def 2, A6, A7;
-  set H = G vol;
-  now
-    let n be Element of NAT;
-    diameter(G.n) = 0 by A5, MEASURE5:def 6;
-    hence H.n = 0 by MEASURE7:def 4;
-  end;
-  then SUM(H) = 0 by MEASURE7:1;
-  then vol(G) = 0 by MEASURE7:def 6;
-  then 0 in Svc({}REAL) by MEASURE7:def 8;
-  then inf Svc({}REAL) <= 0 by XXREAL_2:3;
-  then OS_Meas.({}REAL) <= 0 by MEASURE7:def 10;
-  then A8: L_mi.({}REAL) <= 0 by A1, ThCompat, MEASURE7:def 12;
-  thus thesis by A2, A8;
+theorem ThEmptySetMeasureZero:
+  L_mi.({}REAL) = 0 by VALUED_0:def 19;
+
+registration
+  cluster empty -> lebesgue_measurable for Subset of REAL;
+  coherence by ThThinIsMeasurable, ThEmptySetMeasureZero;
 end;
 
 theorem ThInftyNotLowerBound:
@@ -172,7 +148,8 @@ proof
   hence thesis by ThThinIsMeasurable;
 end;
 
-theorem ThSingletonMeasureZero: for x being Real holds L_mi.({x}) = 0
+theorem ThSingletonMeasureZero:
+  for x being Real holds L_mi.({x}) = 0
 proof
   let x be Real;
   reconsider y = x as Element of REAL by XREAL_0:def 1;
