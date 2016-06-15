@@ -16,28 +16,28 @@ environ
       TARSKI, ORDINAL2, XXREAL_0, NAT_1, XXREAL_2, ORDINAL1, XBOOLE_0,
       ZFMISC_1, FUNCOP_1, MEASURE5, FUNCT_2, SUPINF_1, MCART_1, MEASURE4,
       REAL_1, PROB_1, MEASURE1, MEASURE7, FUNCT_7, XCMPLX_0, MEMBERED,
-      LEBMEAS, VALUED_0;
+      LEBMEAS, VALUED_0, XXREAL_1, ARYTM_1;
  notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, DOMAIN_1, ORDINAL1,
       NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0, XXREAL_3, RELAT_1, FUNCT_1,
-      VALUED_0,
+      VALUED_0, XXREAL_1,
       RELSET_1, PARTFUN1, FUNCT_2, FUNCOP_1, NAT_1, PROB_1, XXREAL_2, SUPINF_1,
       SUPINF_2, MEASURE1, MEASURE4, MEASURE5, RECDEF_1, MEASURE7, MEMBERED;
  constructors PARTFUN1, DOMAIN_1, FUNCOP_1, NAT_1, MEASURE4, MEASURE5,
-      VALUED_0,
-      RECDEF_1, SUPINF_1, XREAL_0, RELSET_1, XXREAL_2, MEASURE1, PROB_2,
-      MEASURE7;
+      VALUED_0, RECDEF_1, SUPINF_1, XREAL_0, RELSET_1, XXREAL_2, MEASURE1,
+      PROB_2, MEASURE7, XXREAL_1;
  registrations XBOOLE_0, SUBSET_1, ORDINAL1, FUNCT_2, NUMBERS, XREAL_0,
       MEMBERED, MEASURE1, MEASURE4, VALUED_0, XXREAL_2, XXREAL_3, FUNCT_1,
-      RELSET_1, XXREAL_0, MEASURE7, MEASURE5;
+      RELSET_1, XXREAL_0, MEASURE7, MEASURE5, XXREAL_1;
  requirements NUMERALS, BOOLE, SUBSET, ARITHM, REAL;
  definitions TARSKI, MEASURE4, XBOOLE_0, XXREAL_2, VALUED_0, MEASURE7,
-      MEASURE1, XREAL_0, MEMBERED, SUBSET_1;
- equalities SUPINF_2;
+      MEASURE1, XREAL_0, MEMBERED, SUBSET_1, XXREAL_1, XTUPLE_0, RELAT_1,
+      XXREAL_0;
+ equalities SUPINF_2, XXREAL_1;
  expansions TARSKI;
  theorems TARSKI, SUPINF_2, MEASURE1, FUNCT_1, MEASURE5, MEASURE6, ZFMISC_1,
       FUNCT_2, NAT_1, XBOOLE_0, XBOOLE_1, FUNCOP_1, XXREAL_0, ORDINAL1,
       XXREAL_2, XXREAL_3, XTUPLE_0, MEASURE7, PROB_1, MEASURE4, XREAL_0,
-      SUBSET_1, XREAL_1, VALUED_0;
+      SUBSET_1, XREAL_1, VALUED_0, XXREAL_1, NUMBERS;
  schemes FUNCT_2, NAT_1, BINOP_2, SUBSET_1, XBOOLE_0, XFAMILY;
 
 begin
@@ -99,8 +99,15 @@ theorem ThEmptySetMeasureZero:
 
 theorem ThInftyNotLowerBound:
   for X being ext-real-membered set st (ex x being Real st x in X)
-  holds not (+infty is LowerBound of X);
-::>                                   *4
+  holds not (+infty is LowerBound of X)
+proof
+  let X be ext-real-membered set;
+  assume ex x being Real st x in X;
+  then consider x being Real such that A1: x in X;
+  assume +infty is LowerBound of X;
+  then +infty <= x by A1, XXREAL_2:def 2;
+  hence contradiction by XXREAL_0:4;
+end;
 
 theorem ThInfimumNotSharp:
   for X being ext-real-membered set holds
@@ -118,25 +125,19 @@ proof
     per cases by XXREAL_0:14;
       suppose A4: c = -infty;
         reconsider a as Element of REAL by XREAL_0:def 1;
-        a in REAL;
-        then c < a by A4, XXREAL_0:12;
+        c < a by A4, XXREAL_0:12;
         hence thesis;
       end;
       suppose c = +infty;
         then contradiction by A2, ThInftyNotLowerBound;
         hence thesis;
       end;
-      suppose A6: c in REAL;
-        assume A5: c > a;
-        reconsider c as Real by A6, XREAL_0:def 1;
-        set b = (a + c) / 2;
-        a + c > a + a by A5, XREAL_1:6;
-        then (a + c) / 2 > (a + a) / 2 by XREAL_1:74;
-        then A6: b > a;
-        a + c < c + c by A5, XREAL_1:6;
-        then (a + c) / 2 < (c + c) / 2 by XREAL_1:74;
-        then b < c;
-        hence contradiction by A1, A6, XXREAL_2:def 2;
+      suppose c in REAL;
+        then reconsider d = c as Real;
+        assume c > a;
+        then a + a < a + d < d + d by XREAL_1:6;
+        then (a + a) / 2 < (a + d) / 2 < (d + d) / 2 by XREAL_1:74;
+        hence contradiction by A1, XXREAL_2:def 2;
       end;
   end;
   inf X is LowerBound of X by XXREAL_2:def 4;
@@ -144,8 +145,72 @@ proof
 end;
 
 theorem ThSingletonIsThin:
-  for x being Element of REAL holds OS_Meas.({x}) = 0;
-::>                                                 *4
+  for x being Element of REAL holds OS_Meas.({x}) = 0
+proof
+  let x be Element of REAL;
+  deffunc C() = NAT;
+  deffunc D() = bool REAL;
+  defpred P[object, object] means
+    (($1 = 0 & $2 = {x}) or ($1 <> 0 & $2 = {}REAL));
+  A1: for n being Element of NAT holds
+      ex xs being Element of bool REAL st P[n,xs]
+  proof
+    let n be Element of NAT;
+    per cases;
+    suppose A2: n = 0;
+      take xs = {x};
+      thus thesis by A2;
+    end;
+    suppose A3: n <> 0;
+      take xs = {}REAL;
+      thus thesis by A3;
+    end;
+  end;
+  consider F being Function of NAT, bool REAL such that
+  A4: for n being Element of NAT holds P[n, F.n] from FUNCT_2:sch 3(A1);
+  A5: for n being Element of NAT holds F.n is Interval
+  proof
+    let n be Element of NAT;
+    per cases;
+    suppose n = 0;
+      then F.n = {x} = [.x,x.] by A4, XXREAL_1:17;
+      hence thesis by XXREAL_1:17;
+    end;
+    suppose n <> 0;
+      hence thesis by A4;
+    end;
+  end;
+  A6: for n being Element of NAT holds diameter(F.n) = 0
+  proof
+    reconsider y = x as R_eal by NUMBERS:31;
+    let n be Element of NAT;
+    per cases;
+    suppose n = 0;
+      then F.n = {y} = [.y,y.] by A4, XXREAL_1:17;
+      then diameter(F.n) = x - x by MEASURE5:6;
+      hence thesis;
+    end;
+    suppose n <> 0;
+      hence thesis by A4, MEASURE5:10;
+    end;
+  end;
+  F.0 = {x} by A4;
+  then {x} in rng F by FUNCT_2:4;
+  then A7: {x} c= union (rng F) by ZFMISC_1:74;
+  reconsider G = F as Interval_Covering of {x} by MEASURE7:def 2, A5, A7;
+  now
+    let n be Element of NAT;
+    (G vol).n = diameter(F.n) by MEASURE7:def 4;
+    hence (G vol).n = 0 by A6;
+  end;
+  then SUM(G vol) = 0 by MEASURE7:1;
+  then vol(G) = 0 by MEASURE7:def 6;
+  then 0 in Svc({x}) by MEASURE7:def 8;
+  then inf Svc({x}) <= 0 by XXREAL_2:3;
+  then A8: OS_Meas.({x}) <= 0 by MEASURE7:def 10;
+  OS_Meas is nonnegative by MEASURE4:def 1;
+  hence thesis by A8, MEASURE1:def 2;
+end;
 
 theorem ThSingletonIsMeasurable:
   for x being Element of REAL holds {x} is lebesgue_measurable
@@ -166,4 +231,3 @@ proof
      .= OS_Meas.({y}) by A1, ThCompat
      .= 0 by ThSingletonIsThin;
 end;
-::> 4: This inference is not accepted
