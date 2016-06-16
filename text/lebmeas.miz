@@ -16,28 +16,29 @@ environ
       TARSKI, ORDINAL2, XXREAL_0, NAT_1, XXREAL_2, ORDINAL1, XBOOLE_0,
       ZFMISC_1, FUNCOP_1, MEASURE5, FUNCT_2, SUPINF_1, MCART_1, MEASURE4,
       REAL_1, PROB_1, MEASURE1, MEASURE7, FUNCT_7, XCMPLX_0, MEMBERED,
-      LEBMEAS, VALUED_0, XXREAL_1, ARYTM_1;
+      LEBMEAS, VALUED_0, XXREAL_1, ARYTM_1, INT_1, ABSVALUE, COMPLEX1;
  notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, DOMAIN_1, ORDINAL1,
       NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0, XXREAL_3, RELAT_1, FUNCT_1,
-      VALUED_0, XXREAL_1,
+      VALUED_0, XXREAL_1, INT_1, COMPLEX1,
       RELSET_1, PARTFUN1, FUNCT_2, FUNCOP_1, NAT_1, PROB_1, XXREAL_2, SUPINF_1,
       SUPINF_2, MEASURE1, MEASURE4, MEASURE5, RECDEF_1, MEASURE7, MEMBERED;
  constructors PARTFUN1, DOMAIN_1, FUNCOP_1, NAT_1, MEASURE4, MEASURE5,
       VALUED_0, RECDEF_1, SUPINF_1, XREAL_0, RELSET_1, XXREAL_2, MEASURE1,
-      PROB_2, MEASURE7, XXREAL_1;
+      PROB_2, MEASURE7, XXREAL_1, INT_1, COMPLEX1, ABSVALUE;
  registrations XBOOLE_0, SUBSET_1, ORDINAL1, FUNCT_2, NUMBERS, XREAL_0,
       MEMBERED, MEASURE1, MEASURE4, VALUED_0, XXREAL_2, XXREAL_3, FUNCT_1,
-      RELSET_1, XXREAL_0, MEASURE7, MEASURE5, XXREAL_1;
+      RELSET_1, XXREAL_0, MEASURE7, MEASURE5, XXREAL_1, INT_1, ABSVALUE;
  requirements NUMERALS, BOOLE, SUBSET, ARITHM, REAL;
  definitions TARSKI, MEASURE4, XBOOLE_0, XXREAL_2, VALUED_0, MEASURE7,
       MEASURE1, XREAL_0, MEMBERED, SUBSET_1, XXREAL_1, XTUPLE_0, RELAT_1,
-      XXREAL_0;
+      XXREAL_0, INT_1;
  equalities SUPINF_2, XXREAL_1;
  expansions TARSKI;
  theorems TARSKI, SUPINF_2, MEASURE1, FUNCT_1, MEASURE5, MEASURE6, ZFMISC_1,
       FUNCT_2, NAT_1, XBOOLE_0, XBOOLE_1, FUNCOP_1, XXREAL_0, ORDINAL1,
       XXREAL_2, XXREAL_3, XTUPLE_0, MEASURE7, PROB_1, MEASURE4, XREAL_0,
-      SUBSET_1, XREAL_1, VALUED_0, XXREAL_1, NUMBERS;
+      SUBSET_1, XREAL_1, VALUED_0, XXREAL_1, NUMBERS, MEMBERED, INT_1,
+      ABSVALUE, COMPLEX1;
  schemes FUNCT_2, NAT_1, BINOP_2, SUBSET_1, XBOOLE_0, XFAMILY;
 
 begin
@@ -66,6 +67,16 @@ registration
   existence proof
     take [#] REAL;
     thus thesis;
+  end;
+end;
+
+definition
+  let a, b be Real;
+  redefine func [.a, b.] -> Subset of REAL;
+  coherence
+  proof
+    a in REAL & b in REAL by XREAL_0:def 1;
+    hence thesis by XXREAL_1:228;
   end;
 end;
 
@@ -174,7 +185,7 @@ proof
     per cases;
     suppose n = 0;
       then F.n = {x} = [.x,x.] by A4, XXREAL_1:17;
-      hence thesis by XXREAL_1:17;
+      hence thesis;
     end;
     suppose n <> 0;
       hence thesis by A4;
@@ -231,3 +242,238 @@ proof
      .= OS_Meas.({y}) by A1, ThCompat
      .= 0 by ThSingletonIsThin;
 end;
+
+theorem ThSumNonnegative:
+  for F being sequence of ExtREAL st F is nonnegative holds SUM(F) >= 0
+proof
+  let F be sequence of ExtREAL;
+  assume A1: F is nonnegative;
+  set a = (Ser F).0;
+  A2: a in rng (Ser F) by FUNCT_2:4;
+  A3: a >= 0
+  proof
+    a = (Ser F).0 = F.0 by SUPINF_2:def 11;
+    then a in rng F by FUNCT_2:4;
+    hence a >= 0 by A1, SUPINF_2:def 12, SUPINF_2:def 9;
+  end;
+  then sup (rng (Ser F)) >= 0 by A2, A3, XXREAL_2:4;
+  hence thesis by SUPINF_2:def 13;
+end;
+
+theorem ThVolIsNonnegative:
+  for A being Subset of REAL
+  for F being Interval_Covering of A
+  holds vol(F) >= 0
+proof
+  let A be Subset of REAL;
+  let F be Interval_Covering of A;
+  now
+    let n be Element of NAT;
+    0 <= diameter(F.n) by MEASURE5:13;
+    hence 0 <= (F vol).n by MEASURE7:def 4;
+  end;
+  then F vol is nonnegative by SUPINF_2:39;
+  then SUM(F vol) >= 0 by ThSumNonnegative;
+  hence thesis by MEASURE7:def 6;
+end;
+
+definition
+  let A be Subset of REAL;
+  let F be Interval_Covering of A;
+  attr F is open_ic means :Def2:
+  for n being Element of NAT holds F.n is open_interval;
+end;
+
+registration
+  let A be Subset of REAL;
+  cluster open_ic for Interval_Covering of A;
+  existence
+  proof
+    A1: NAT c= ExtREAL by NUMBERS:19, NUMBERS:31;
+    deffunc C() = NAT;
+    deffunc D() = bool REAL;
+    defpred P[Element of NAT, object] means ($2 = ]. -$1, $1 .[);
+    A2: for n being Element of NAT holds
+        ex xs being Element of bool REAL st P[n,xs]
+    proof
+      let n be Element of NAT;
+      reconsider n as R_eal by A1;
+      take ]. -n, n .[;
+      thus thesis;
+    end;
+    consider F being Function of NAT, bool REAL such that
+    A3: for n being Element of NAT holds P[n, F.n] from FUNCT_2:sch 3(A2);
+    A4: for n being Element of NAT holds F.n is open_interval
+    proof
+      let n be Element of NAT;
+      reconsider n as R_eal by A1;
+      F.n = ]. -n, n .[ by A3;
+      hence thesis by MEASURE5:def 2;
+    end;
+    A5: for n being Element of NAT holds F.n is Interval
+    proof
+      let n be Element of NAT;
+      reconsider n as R_eal by A1;
+      F.n = ]. -n, n .[ by A3;
+      hence thesis;
+    end;
+    A c= union (rng F)
+    proof
+      for x being Element of A holds x in union (rng F)
+      proof
+        let x be Element of A;
+        set y = |. x .|;
+        -y <= x & x <= y by ABSVALUE:4;
+        then A6: x in [.-y, y.] by XXREAL_1:1;
+        set n = [\ y /] + 1;
+        y < n by INT_1:29;
+        then -n < -y & y < n by XXREAL_3:38;
+        then [.-y, y.] c= ].-n, n.[ by XXREAL_1:47;
+        then A7: x in ].-n, n.[ by A6;
+        y >= 0 by COMPLEX1:46;
+        then n >= 0 by INT_1:29;
+        then reconsider n as Element of NAT by INT_1:3;
+        F.n = ]. -n, n .[ by A3;
+        then ]. -n, n .[ in rng F by FUNCT_2:4;
+        hence x in union (rng F) by A7, TARSKI:def 4;
+      end;
+      hence thesis;
+    end;
+    then reconsider F as Interval_Covering of A by A5, MEASURE7:def 2;
+    take F;
+    thus thesis by A4;
+  end;
+end;
+
+theorem ThTransitiveInequality:
+  for a, b, c being ExtReal st a <= b & b < c holds a < c
+proof
+  let a, b, c be ExtReal;
+  assume that A1: a <= b
+  and A2: b < c;
+  a <> c
+  proof
+    per cases;
+    suppose a = b;
+      hence thesis by A2;
+    end;
+    suppose a <> b;
+      then a < b by A1, XXREAL_0:1;
+      hence thesis by A2, XXREAL_0:2;
+::      hence thesis;
+    end;
+  end;
+  hence thesis by A1, A2, XXREAL_0:2;
+end;
+
+theorem ThExtendToOpenIntervals:
+  for A being Subset of REAL
+  for F being Interval_Covering of A
+  for h being Real st h > 0
+  ex G being open_ic Interval_Covering of A
+  st :: (for n being Element of NAT holds F.n c= G.n)
+    (vol(G) <= vol(F) + h);
+::>                      *4
+
+theorem ThQuantitativeHeineBorel:
+  for a, b being Real st a <= b holds
+  for F being open_ic Interval_Covering of [.a, b.]
+  holds vol(F) >= b - a;
+::>                   *4
+
+theorem ThClosedIntervalOuterMeasure:
+  for a, b being Real st a <= b holds OS_Meas.([.a, b.]) = b - a
+proof
+  let a, b be Real;
+  assume A1: a <= b;
+  reconsider I = [.a, b.] as Subset of REAL;
+  A2: b - a in Svc(I)
+  proof
+    deffunc C() = NAT;
+    deffunc D() = bool REAL;
+    defpred P[object, object] means
+      (($1 = 0 & $2 = I) or ($1 <> 0 & $2 = {}REAL));
+    A3: for n being Element of NAT holds
+        ex xs being Element of bool REAL st P[n,xs]
+    proof
+      let n be Element of NAT;
+      per cases;
+      suppose Cond: n = 0;
+        take xs = I;
+        thus thesis by Cond;
+      end;
+      suppose Cond: n <> 0;
+        take xs = {}REAL;
+        thus thesis by Cond;
+      end;
+    end;
+    consider F being Function of NAT, bool REAL such that
+    A4: for n being Element of NAT holds P[n, F.n] from FUNCT_2:sch 3(A3);
+    A5: for n being Element of NAT holds F.n is Interval by A4;
+    F.0 = I by A4;
+    then I in rng F by FUNCT_2:4;
+    then I c= union (rng F) by ZFMISC_1:74;
+    then reconsider G = F as Interval_Covering of I by MEASURE7:def 2, A5;
+    reconsider H = G vol as sequence of ExtREAL;
+    now
+      let n be Element of NAT;
+      assume 1 <= n;
+      then G.n = {} by A4;
+      hence H.n = 0 by MEASURE7:def 4, MEASURE5:10;
+    end;
+    then A6: SUM(H)
+               = Ser(H).1
+               = Ser(H).(0+1)
+               = Ser(H).0 + H.1
+               = H.0 + H.1 by MEASURE7:12, SUPINF_2:48, SUPINF_2:def 11;
+    now
+      reconsider a1 = a as R_eal by XREAL_0:def 1, NUMBERS:31;
+      reconsider b1 = b as R_eal by XREAL_0:def 1, NUMBERS:31;
+      H.0 = diameter(G.0) = diameter(I) by A4, MEASURE7:def 4;
+      then A7: H.0 = b1 - a1 by A1, MEASURE5:6;
+      G.1 = {} by A4;
+      then H.1 = 0 by MEASURE7:def 4, MEASURE5:10;
+      then H.0 + H.1 = (b1 - a1) + 0 = (b - a) + 0 by A7;
+      hence H.0 + H.1 = b - a;
+    end;
+    then vol(G) = b - a by A6, MEASURE7:def 6;
+    hence thesis by MEASURE7:def 8;
+  end;
+  b - a is LowerBound of Svc(I)
+  proof
+    let x be ExtReal;
+    assume x in Svc(I);
+    then consider F being Interval_Covering of I such that
+      A9: x = vol(F) by MEASURE7:def 8;
+    assume A10: x < b - a;
+    x in REAL
+    proof
+      per cases by XXREAL_0:14;
+      suppose x in REAL;
+        hence thesis;
+      end;
+      suppose x = +infty;
+        then contradiction by XREAL_0:def 1, A10, XXREAL_0:9;
+        hence thesis;
+      end;
+      suppose x = -infty;
+        then contradiction by A9, ThVolIsNonnegative, XXREAL_0:12;
+        hence thesis;
+      end;
+    end;
+    then reconsider x as Real;
+    set d = ((b - a) - x) / 2;
+    (b - a) - x > 0 by A10, XREAL_1:50;
+    then d > 0 by XREAL_1:139;
+    then consider G being open_ic Interval_Covering of I such that
+      A11: vol(G) <= x + d by A9, ThExtendToOpenIntervals;
+    x + (b-a) < (b-a) + (b-a) by A10, XREAL_1:6;
+    then (x + (b - a)) / 2 < ((b-a) + (b-a)) / 2 by XREAL_1:74;
+    then x + d < b - a by A10, XREAL_1:74;
+    then vol(G) < b - a by A11, ThTransitiveInequality;
+    hence contradiction by A1, ThQuantitativeHeineBorel;
+  end;
+  then inf(Svc(I)) = b - a by A2, XXREAL_2:56;
+  hence thesis by MEASURE7:def 10;
+end;
+::> 4: This inference is not accepted
