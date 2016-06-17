@@ -16,29 +16,32 @@ environ
       TARSKI, ORDINAL2, XXREAL_0, NAT_1, XXREAL_2, ORDINAL1, XBOOLE_0,
       ZFMISC_1, FUNCOP_1, MEASURE5, FUNCT_2, SUPINF_1, MCART_1, MEASURE4,
       REAL_1, PROB_1, MEASURE1, MEASURE7, FUNCT_7, XCMPLX_0, MEMBERED,
-      LEBMEAS, VALUED_0, XXREAL_1, ARYTM_1, INT_1, ABSVALUE, COMPLEX1;
+      LEBMEAS, VALUED_0, XXREAL_1, ARYTM_1, INT_1, ABSVALUE, COMPLEX1,
+      NEWTON;
  notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, DOMAIN_1, ORDINAL1,
       NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0, XXREAL_3, RELAT_1, FUNCT_1,
-      VALUED_0, XXREAL_1, INT_1, COMPLEX1,
+      VALUED_0, XXREAL_1, INT_1, COMPLEX1, NEWTON,
       RELSET_1, PARTFUN1, FUNCT_2, FUNCOP_1, NAT_1, PROB_1, XXREAL_2, SUPINF_1,
       SUPINF_2, MEASURE1, MEASURE4, MEASURE5, RECDEF_1, MEASURE7, MEMBERED;
  constructors PARTFUN1, DOMAIN_1, FUNCOP_1, NAT_1, MEASURE4, MEASURE5,
       VALUED_0, RECDEF_1, SUPINF_1, XREAL_0, RELSET_1, XXREAL_2, MEASURE1,
-      PROB_2, MEASURE7, XXREAL_1, INT_1, COMPLEX1, ABSVALUE;
+      PROB_2, MEASURE7, XXREAL_1, INT_1, COMPLEX1, ABSVALUE, NEWTON,
+      ORDINAL1, NUMBERS, XXREAL_0, ABIAN;
  registrations XBOOLE_0, SUBSET_1, ORDINAL1, FUNCT_2, NUMBERS, XREAL_0,
       MEMBERED, MEASURE1, MEASURE4, VALUED_0, XXREAL_2, XXREAL_3, FUNCT_1,
-      RELSET_1, XXREAL_0, MEASURE7, MEASURE5, XXREAL_1, INT_1, ABSVALUE;
+      RELSET_1, XXREAL_0, MEASURE7, MEASURE5, XXREAL_1, INT_1, ABSVALUE,
+      NEWTON;
  requirements NUMERALS, BOOLE, SUBSET, ARITHM, REAL;
  definitions TARSKI, MEASURE4, XBOOLE_0, XXREAL_2, VALUED_0, MEASURE7,
       MEASURE1, XREAL_0, MEMBERED, SUBSET_1, XXREAL_1, XTUPLE_0, RELAT_1,
-      XXREAL_0, INT_1;
+      XXREAL_0, INT_1, MEASURE5, NEWTON;
  equalities SUPINF_2, XXREAL_1;
  expansions TARSKI;
  theorems TARSKI, SUPINF_2, MEASURE1, FUNCT_1, MEASURE5, MEASURE6, ZFMISC_1,
       FUNCT_2, NAT_1, XBOOLE_0, XBOOLE_1, FUNCOP_1, XXREAL_0, ORDINAL1,
       XXREAL_2, XXREAL_3, XTUPLE_0, MEASURE7, PROB_1, MEASURE4, XREAL_0,
       SUBSET_1, XREAL_1, VALUED_0, XXREAL_1, NUMBERS, MEMBERED, INT_1,
-      ABSVALUE, COMPLEX1;
+      ABSVALUE, COMPLEX1, PREPOWER;
  schemes FUNCT_2, NAT_1, BINOP_2, SUBSET_1, XBOOLE_0, XFAMILY;
 
 begin
@@ -60,9 +63,6 @@ registration
     REAL in Lmi_sigmaFIELD by PROB_1:5;
     hence [#] REAL in Lmi_sigmaFIELD by SUBSET_1:def 3;
   end;
-end;
-
-registration
   cluster lebesgue_measurable for Subset of REAL;
   existence proof
     take [#] REAL;
@@ -108,51 +108,31 @@ end;
 theorem ThEmptySetMeasureZero:
   L_mi.{} = 0 by VALUED_0:def 19;
 
-theorem ThInftyNotLowerBound:
-  for X being ext-real-membered set st (ex x being Real st x in X)
-  holds not (+infty is LowerBound of X)
+theorem ThElementOfSequenceUnion:
+  for X being set
+  for S being sequence of bool X
+  for x being Element of X
+  holds x in union (rng S) iff ex n being Element of NAT st x in S.n
 proof
-  let X be ext-real-membered set;
-  assume ex x being Real st x in X;
-  then consider x being Real such that A1: x in X;
-  assume +infty is LowerBound of X;
-  then +infty <= x by A1, XXREAL_2:def 2;
-  hence contradiction by XXREAL_0:4;
-end;
-
-theorem ThInfimumNotSharp:
-  for X being ext-real-membered set holds
-  for a being Real holds
-  (for b being Real st b > a holds b in X) implies inf X <= a
-proof
-  let X be ext-real-membered set;
-  let a be Real;
-  assume A1: for b being Real st b > a holds b in X;
-  a+1 is Real & a+1 > a by XREAL_1:29;
-  then A2: a+1 in X by A1;
-  A3: for c being LowerBound of X holds c <= a
-  proof
-    let c be LowerBound of X;
-    per cases by XXREAL_0:14;
-      suppose A4: c = -infty;
-        reconsider a as Element of REAL by XREAL_0:def 1;
-        c < a by A4, XXREAL_0:12;
-        hence thesis;
-      end;
-      suppose c = +infty;
-        then contradiction by A2, ThInftyNotLowerBound;
-        hence thesis;
-      end;
-      suppose c in REAL;
-        then reconsider d = c as Real;
-        assume c > a;
-        then a + a < a + d < d + d by XREAL_1:6;
-        then (a + a) / 2 < (a + d) / 2 < (d + d) / 2 by XREAL_1:74;
-        hence contradiction by A1, XXREAL_2:def 2;
-      end;
+  let X be set;
+  let S be sequence of bool X;
+  let x be Element of X;
+  hereby
+    assume x in union (rng S);
+    then consider A being set such that
+      A1: x in A & A in rng S by TARSKI:def 4;
+    consider n being object such that
+      A2: n in dom S & A = S.n by A1, FUNCT_1:def 3;
+    reconsider n as Element of NAT by A2;
+    take n;
+    thus x in S.n by A1, A2;
   end;
-  inf X is LowerBound of X by XXREAL_2:def 4;
-  hence inf X <= a by A3;
+  hereby
+    assume ex n being Element of NAT st x in S.n;
+    then consider n being Element of NAT such that A3: x in S.n;
+    S.n in rng S by FUNCT_2:4;
+    hence x in union (rng S) by A3, TARSKI:def 4;
+  end;
 end;
 
 theorem ThSingletonIsThin:
@@ -260,10 +240,10 @@ proof
   hence thesis by SUPINF_2:def 13;
 end;
 
-theorem ThVolIsNonnegative:
+theorem ThVolSeriesIsNonnegative:
   for A being Subset of REAL
   for F being Interval_Covering of A
-  holds vol(F) >= 0
+  holds F vol is nonnegative
 proof
   let A be Subset of REAL;
   let F be Interval_Covering of A;
@@ -272,21 +252,44 @@ proof
     0 <= diameter(F.n) by MEASURE5:13;
     hence 0 <= (F vol).n by MEASURE7:def 4;
   end;
-  then F vol is nonnegative by SUPINF_2:39;
-  then SUM(F vol) >= 0 by ThSumNonnegative;
+  hence F vol is nonnegative by SUPINF_2:39;
+end;
+
+theorem ThVolIsNonnegative:
+  for A being Subset of REAL
+  for F being Interval_Covering of A
+  holds vol(F) >= 0
+proof
+  let A be Subset of REAL;
+  let F be Interval_Covering of A;
+  SUM(F vol) >= 0 by ThSumNonnegative, ThVolSeriesIsNonnegative;
   hence thesis by MEASURE7:def 6;
+end;
+
+theorem ThTransitiveInequality:
+  for a, b, c being ExtReal st a <= b & b < c holds a < c
+proof
+  let a, b, c be ExtReal;
+  assume that A1: a <= b
+  and A2: b < c;
+  a <> c
+  proof
+    per cases;
+    suppose a = b;
+      hence thesis by A2;
+    end;
+    suppose a <> b;
+      then a < b by A1, XXREAL_0:1;
+      hence thesis by A2, XXREAL_0:2;
+    end;
+  end;
+  hence thesis by A1, A2, XXREAL_0:2;
 end;
 
 definition
   let A be Subset of REAL;
-  let F be Interval_Covering of A;
-  attr F is open_ic means :Def2:
-  for n being Element of NAT holds F.n is open_interval;
-end;
-
-registration
-  let A be Subset of REAL;
-  cluster open_ic for Interval_Covering of A;
+  mode Open_Interval_Covering of A -> Interval_Covering of A means :Def2:
+    for n being Element of NAT holds it.n is open_interval;
   existence
   proof
     A1: NAT c= ExtREAL by NUMBERS:19, NUMBERS:31;
@@ -333,9 +336,8 @@ registration
         y >= 0 by COMPLEX1:46;
         then n >= 0 by INT_1:29;
         then reconsider n as Element of NAT by INT_1:3;
-        F.n = ]. -n, n .[ by A3;
-        then ]. -n, n .[ in rng F by FUNCT_2:4;
-        hence x in union (rng F) by A7, TARSKI:def 4;
+        x in F.n by A3, A7;
+        hence x in union (rng F) by ThElementOfSequenceUnion;
       end;
       hence thesis;
     end;
@@ -345,39 +347,192 @@ registration
   end;
 end;
 
-theorem ThTransitiveInequality:
-  for a, b, c being ExtReal st a <= b & b < c holds a < c
-proof
-  let a, b, c be ExtReal;
-  assume that A1: a <= b
-  and A2: b < c;
-  a <> c
+definition
+  let I be Interval;
+  let h be Real;
+  func expand_interval(I, h) -> open_interval Subset of REAL equals :Def4:
+    {} if I = {} or h < 0
+    otherwise ]. inf I - h/2, sup I + h/2 .[;
+  consistency;
+  coherence
   proof
-    per cases;
-    suppose a = b;
-      hence thesis by A2;
+    hereby
+      assume (I = {} or h < 0);
+      thus {} is open_interval Subset of REAL by SUBSET_1:1;
     end;
-    suppose a <> b;
-      then a < b by A1, XXREAL_0:1;
-      hence thesis by A2, XXREAL_0:2;
-::      hence thesis;
-    end;
+    assume not (I = {} or h < 0);
+    reconsider d = h/2 as R_eal by NUMBERS:31, XREAL_0:def 1;
+    reconsider J = ]. inf I - d, sup I + d .[ as Subset of REAL
+      by XXREAL_1:225;
+    J is open_interval by MEASURE5:def 2;
+    hence thesis;
   end;
-  hence thesis by A1, A2, XXREAL_0:2;
+end;
+
+theorem ThExpansionContainsOrig:
+  for I being Interval
+  for h being Real st h > 0
+  holds I c= expand_interval(I, h)
+proof
+  let I be Interval;
+  let h be Real;
+  per cases;
+  suppose I = {};
+    hence thesis;
+  end;
+  suppose A1: I <> {};
+    assume A2: h > 0;
+    now
+      let x0 be set;
+      assume A3: x0 in I;
+      then reconsider x = x0 as Real;
+      A4: inf I - h/2 < x
+      proof
+        per cases by XXREAL_0:14;
+        suppose inf I = +infty;
+          then +infty is LowerBound of I by XXREAL_2:def 4;
+          then I c= {+infty} by XXREAL_2:52;
+          then x = +infty by A3, TARSKI:def 1;
+          hence thesis by A3, XXREAL_0:8;
+        end;
+        suppose inf I = -infty;
+          then -infty = inf I + -(h/2) by XXREAL_3:def 2
+                     .= inf I - h/2 by XXREAL_3:def 4;
+          hence thesis by A3, XXREAL_0:12;
+        end;
+        suppose inf I in REAL;
+          then reconsider i = inf I as Real;
+          A5: i <= x by A3, XXREAL_2:3;
+          h/2 > 0 by A2, XREAL_1:215;
+          then i - h/2 < x - 0 = x by A5, XREAL_1:15;
+          hence thesis;
+        end;
+      end;
+      A6: x < sup I + h/2
+      proof
+        per cases by XXREAL_0:14;
+        suppose sup I = +infty;
+          then +infty = sup I + h/2 by XXREAL_3:def 2;
+          hence thesis by A3, XXREAL_0:9;
+        end;
+        suppose sup I = -infty;
+          then -infty is UpperBound of I by XXREAL_2:def 3;
+          then I c= {-infty} by XXREAL_2:51;
+          then x = -infty by A3, TARSKI:def 1;
+          hence thesis by A3, XXREAL_0:11;
+        end;
+        suppose sup I in REAL;
+          then reconsider s = sup I as Real;
+          A7: x <= s by A3, XXREAL_2:4;
+          h/2 > 0 by A2, XREAL_1:215;
+          then x < s + h/2 by A7, XREAL_1:39;
+          hence thesis;
+        end;
+      end;
+      x in ]. inf I - h/2, sup I + h/2 .[ by A4, A6, XXREAL_1:4;
+      then x in expand_interval(I, h) by A1, A2, Def4;
+      hence x0 in expand_interval(I, h);
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem ThExpansionIsLonger:
+  for I being Interval
+  for h being Real st h >= 0
+  holds diameter(expand_interval(I, h)) <= diameter(I) + h
+proof
+  let I be Interval;
+  let h be Real;
+  assume A1: 0 <= h;
+  set J = expand_interval(I, h);
+  per cases;
+  suppose A2: I = {};
+    then A3: diameter(I) = 0 by MEASURE5:def 6;
+    J = {} by A2, Def4;
+    then diameter(J) = 0 by MEASURE5:def 6;
+    hence diameter(J) <= diameter(I) + h by A1, A3;
+  end;
+  suppose A4: I <> {};
+    then A5: diameter(I) = sup I - inf I by MEASURE5:def 6;
+    reconsider d = h/2 as R_eal;
+::>                           *4
+    reconsider lo = inf I - d as R_eal;
+    reconsider hi = sup I + d as R_eal;
+    A6: J = ]. lo, hi .[ by A1, A4, Def4;
+    A7: lo < hi;
+::>           *4
+    A8: lo < inf I;
+::>              *4
+    A8: diameter(J) = hi - lo by A6, A7, MEASURE5:5;
+    A9: diameter(J) = (sup I + d) - (inf I - d) by A6, A7, MEASURE5:5
+                   .= (sup I + d) + (-(inf I - d)) by XXREAL_3:def 4
+                   .= (sup I + d) + (d - inf I) by XXREAL_3:26
+                   .= sup I + d + (d + (-inf I)) by XXREAL_3:def 4;
+::     then diameter(J) = sup I + d + d + (-inf I) by XXREAL_3:def 2;
+::                    .= sup I + (-inf I) + d + d :: by XXREAL_3:def 4
+::                    .= diameter(I) + (d + d) by A8;
+    thus diameter(J) <= diameter(I) + h by A1, A9, XXREAL_3:105;
+::>                                      *4
+  end;
 end;
 
 theorem ThExtendToOpenIntervals:
   for A being Subset of REAL
   for F being Interval_Covering of A
   for h being Real st h > 0
-  ex G being open_ic Interval_Covering of A
-  st :: (for n being Element of NAT holds F.n c= G.n)
-    (vol(G) <= vol(F) + h);
-::>                      *4
+  ex G being Open_Interval_Covering of A
+  st vol(G) <= vol(F) + h
+proof
+  let A be Subset of REAL;
+  let F be Interval_Covering of A;
+  let h be Real;
+  assume A1: h > 0;
+  deffunc C() = NAT;
+  deffunc D() = bool REAL;
+  deffunc I(Element of NAT) = expand_interval(F.$1, h / (2 |^ $1));
+  consider G being Function of NAT, bool REAL such that
+    A2: for n being Element of NAT holds G.n = I(n) from FUNCT_2:sch 4;
+  A3: A c= union (rng F) c= union (rng G)
+  proof
+    thus A c= union (rng F) by MEASURE7:def 2;
+    now
+      let x be set;
+      assume x in union (rng F);
+      then consider n being Element of NAT such that
+        A4: x in F.n by ThElementOfSequenceUnion;
+      2 |^ n > 0 by PREPOWER:6;
+      then h / (2 |^ n) > 0 by A1, XREAL_1:139;
+      then F.n c= I(n) by A1, ThExpansionContainsOrig;
+      then x in I(n) by A4;
+      then x in G.n by A2;
+      hence x in union (rng G) by ThElementOfSequenceUnion;
+    end;
+    hence union (rng F) c= union (rng G);
+  end;
+  for n being Element of NAT holds G.n is Interval
+  proof
+    let n be Element of NAT;
+    G.n = I(n) by A2;
+    hence thesis;
+  end;
+  then reconsider G as Interval_Covering of A
+    by A3, MEASURE7:def 2, XBOOLE_1:1;
+  for n being Element of NAT holds G.n is open_interval
+  proof
+    let n be Element of NAT;
+    G.n = I(n) by A2;
+    hence thesis;
+  end;
+  then reconsider G as Open_Interval_Covering of A by Def2;
+  take G;
+  thus vol(G) <= vol(F) + h;
+::>                       *4
+end;
 
 theorem ThQuantitativeHeineBorel:
   for a, b being Real st a <= b holds
-  for F being open_ic Interval_Covering of [.a, b.]
+  for F being Open_Interval_Covering of [.a, b.]
   holds vol(F) >= b - a;
 ::>                   *4
 
@@ -465,7 +620,7 @@ proof
     set d = ((b - a) - x) / 2;
     (b - a) - x > 0 by A10, XREAL_1:50;
     then d > 0 by XREAL_1:139;
-    then consider G being open_ic Interval_Covering of I such that
+    then consider G being Open_Interval_Covering of I such that
       A11: vol(G) <= x + d by A9, ThExtendToOpenIntervals;
     x + (b-a) < (b-a) + (b-a) by A10, XREAL_1:6;
     then (x + (b - a)) / 2 < ((b-a) + (b-a)) / 2 by XREAL_1:74;
