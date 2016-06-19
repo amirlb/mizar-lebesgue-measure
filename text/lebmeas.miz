@@ -17,7 +17,7 @@ environ
       ZFMISC_1, FUNCOP_1, MEASURE5, FUNCT_2, SUPINF_1, MCART_1, MEASURE4,
       REAL_1, PROB_1, MEASURE1, MEASURE7, FUNCT_7, XCMPLX_0, MEMBERED,
       LEBMEAS, VALUED_0, XXREAL_1, ARYTM_1, INT_1, ABSVALUE, COMPLEX1,
-      NEWTON;
+      NEWTON, XREAL_0;
  notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, DOMAIN_1, ORDINAL1,
       NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0, XXREAL_3, RELAT_1, FUNCT_1,
       VALUED_0, XXREAL_1, INT_1, COMPLEX1, NEWTON,
@@ -48,7 +48,7 @@ begin
 
 definition
   let A be Subset of REAL;
-  attr A is lebesgue_measurable means :Def1:
+  attr A is lebesgue_measurable means :DefMeasurable:
     A in Lmi_sigmaFIELD;
 end;
 
@@ -89,7 +89,7 @@ theorem ThCompat:
 proof
   let A be lebesgue_measurable Subset of REAL;
   Lmi_sigmaFIELD = sigma_Field(OS_Meas) by MEASURE7:def 12;
-  then L_mi.A = OS_Meas.A by Def1, MEASURE4:def 3, MEASURE7:def 13;
+  then L_mi.A = OS_Meas.A by DefMeasurable, MEASURE4:def 3, MEASURE7:def 13;
   hence thesis;
 end;
 
@@ -139,8 +139,6 @@ theorem ThSingletonIsThin:
   for x being Element of REAL holds OS_Meas.({x}) = 0
 proof
   let x be Element of REAL;
-  deffunc C() = NAT;
-  deffunc D() = bool REAL;
   defpred P[object, object] means
     (($1 = 0 & $2 = {x}) or ($1 <> 0 & $2 = {}REAL));
   A1: for n being Element of NAT holds
@@ -215,44 +213,54 @@ theorem ThSingletonMeasureZero:
   for x being Real holds L_mi.({x}) = 0
 proof
   let x be Real;
-  reconsider y = x as Element of REAL by XREAL_0:def 1;
-  A1: {y} is lebesgue_measurable by ThSingletonIsMeasurable;
+  reconsider xx = x as Element of REAL by XREAL_0:def 1;
+  A1: {xx} is lebesgue_measurable by ThSingletonIsMeasurable;
   hence L_mi.({x})
-      = L_mi.({y})
-     .= OS_Meas.({y}) by A1, ThCompat
+      = L_mi.({xx})
+     .= OS_Meas.({xx}) by A1, ThCompat
      .= 0 by ThSingletonIsThin;
 end;
 
-theorem ThSumNonnegative:
-  for F being sequence of ExtREAL st F is nonnegative holds SUM(F) >= 0
-proof
-  let F be sequence of ExtREAL;
-  assume A1: F is nonnegative;
-  set a = (Ser F).0;
-  A2: a in rng (Ser F) by FUNCT_2:4;
-  A3: a >= 0
+registration
+  cluster nonnegative for sequence of ExtREAL;
+  existence
   proof
-    a = (Ser F).0 = F.0 by SUPINF_2:def 11;
-    then a in rng F by FUNCT_2:4;
-    hence a >= 0 by A1, SUPINF_2:def 12, SUPINF_2:def 9;
+    reconsider nil = 0 as R_eal by XREAL_0:def 1, NUMBERS:31;
+    deffunc F(Element of NAT) = nil;
+    consider S being sequence of ExtREAL such that
+      A1: for n being Element of NAT holds S.n = F(n) from FUNCT_2:sch 4;
+    take S;
+    for n being Element of NAT holds S.n >= 0 by A1;
+    hence thesis by A1, SUPINF_2:39;
   end;
-  then sup (rng (Ser F)) >= 0 by A2, A3, XXREAL_2:4;
+end;
+
+theorem ThSumNonnegative:
+  for F being nonnegative sequence of ExtREAL holds SUM(F) >= 0
+proof
+  let F be nonnegative sequence of ExtREAL;
+  set a = (Ser F).0;
+  (Ser F).0 = F.0 by SUPINF_2:def 11;
+  then (Ser F).0 in rng F by FUNCT_2:4;
+  then A1: (Ser F).0 >= 0 by SUPINF_2:def 12, SUPINF_2:def 9;
+  (Ser F).0 in rng (Ser F) by FUNCT_2:4;
+  then sup (rng (Ser F)) >= 0 by A1, XXREAL_2:4;
   hence thesis by SUPINF_2:def 13;
 end;
 
-theorem ThVolSeriesIsNonnegative:
-  for A being Subset of REAL
-  for F being Interval_Covering of A
-  holds F vol is nonnegative
-proof
+registration
   let A be Subset of REAL;
   let F be Interval_Covering of A;
-  now
-    let n be Element of NAT;
-    0 <= diameter(F.n) by MEASURE5:13;
-    hence 0 <= (F vol).n by MEASURE7:def 4;
+  cluster F vol -> nonnegative;
+  coherence
+  proof
+    now
+      let n be Element of NAT;
+      0 <= diameter(F.n) by MEASURE5:13;
+      hence 0 <= (F vol).n by MEASURE7:def 4;
+    end;
+    hence F vol is nonnegative by SUPINF_2:39;
   end;
-  hence F vol is nonnegative by SUPINF_2:39;
 end;
 
 theorem ThVolIsNonnegative:
@@ -262,7 +270,7 @@ theorem ThVolIsNonnegative:
 proof
   let A be Subset of REAL;
   let F be Interval_Covering of A;
-  SUM(F vol) >= 0 by ThSumNonnegative, ThVolSeriesIsNonnegative;
+  SUM(F vol) >= 0 by ThSumNonnegative;
   hence thesis by MEASURE7:def 6;
 end;
 
@@ -272,18 +280,29 @@ proof
   let a, b, c be ExtReal;
   assume that A1: a <= b
   and A2: b < c;
-  a <> c
-  proof
-    per cases;
-    suppose a = b;
-      hence thesis by A2;
-    end;
-    suppose a <> b;
-      then a < b by A1, XXREAL_0:1;
-      hence thesis by A2, XXREAL_0:2;
-    end;
+  per cases;
+  suppose a = b;
+    hence thesis by A2;
   end;
-  hence thesis by A1, A2, XXREAL_0:2;
+  suppose a <> b;
+    then a < b by A1, XXREAL_0:1;
+    hence thesis by A2, XXREAL_0:2;
+  end;
+end;
+
+theorem ThArchimedeanProperty:
+  for x being Real ex n being Nat st -n < x & x < n
+proof
+  let x be Real;
+  set y = |. x .|;
+  A1: -y <= x & x <= y by ABSVALUE:4;
+  set n = [\ y /] + 1;
+  A2: y < n by INT_1:29;
+  then n >= 0 by COMPLEX1:46;
+  then reconsider n as Nat by INT_1:3, ORDINAL1:def 12;
+  take n;
+  -n < -y & y < n by A2, XXREAL_3:38;
+  hence -n < x & x < n by A1, XXREAL_0:2;
 end;
 
 definition
@@ -293,8 +312,6 @@ definition
   existence
   proof
     A1: NAT c= ExtREAL by NUMBERS:19, NUMBERS:31;
-    deffunc C() = NAT;
-    deffunc D() = bool REAL;
     defpred P[Element of NAT, object] means ($2 = ]. -$1, $1 .[);
     A2: for n being Element of NAT holds
         ex xs being Element of bool REAL st P[n,xs]
@@ -313,30 +330,16 @@ definition
       F.n = ]. -n, n .[ by A3;
       hence thesis by MEASURE5:def 2;
     end;
-    A5: for n being Element of NAT holds F.n is Interval
-    proof
-      let n be Element of NAT;
-      reconsider n as R_eal by A1;
-      F.n = ]. -n, n .[ by A3;
-      hence thesis;
-    end;
+    for I being Subset of REAL holds I is open_interval implies I is Interval;
+    then A5: for n being Element of NAT holds F.n is Interval by A4;
     A c= union (rng F)
     proof
-      for x being Element of A holds x in union (rng F)
-      proof
+      now
         let x be Element of A;
-        set y = |. x .|;
-        -y <= x & x <= y by ABSVALUE:4;
-        then A6: x in [.-y, y.] by XXREAL_1:1;
-        set n = [\ y /] + 1;
-        y < n by INT_1:29;
-        then -n < -y & y < n by XXREAL_3:38;
-        then [.-y, y.] c= ].-n, n.[ by XXREAL_1:47;
-        then A7: x in ].-n, n.[ by A6;
-        y >= 0 by COMPLEX1:46;
-        then n >= 0 by INT_1:29;
-        then reconsider n as Element of NAT by INT_1:3;
-        x in F.n by A3, A7;
+        consider n being Nat such that A6: -n < x & x < n by ThArchimedeanProperty;
+        reconsider n as Element of NAT by ORDINAL1:def 12;
+        x in ].-n, n.[ by A6, XXREAL_1:4;
+        then x in F.n by A3;
         hence x in union (rng F) by ThElementOfSequenceUnion;
       end;
       hence thesis;
@@ -365,6 +368,32 @@ definition
     reconsider J = ]. inf I - d, sup I + d .[ as Subset of REAL
       by XXREAL_1:225;
     J is open_interval by MEASURE5:def 2;
+    hence thesis;
+  end;
+end;
+
+theorem ThInfSupOfRealSet:
+  for A being Subset of REAL st A <> {}
+  holds inf A <> +infty & sup A <> -infty
+proof
+  let A be Subset of REAL;
+  assume A <> {};
+  then consider x being object such that A1: x in A by XBOOLE_0:7;
+  reconsider x as Element of REAL by A1;
+  per cases;
+  suppose inf A = +infty;
+    then +infty is LowerBound of A by XXREAL_2:def 4;
+    then +infty <= x by A1, XXREAL_2:def 2;
+    then contradiction by XXREAL_0:9;
+    hence thesis;
+  end;
+  suppose sup A = -infty;
+    then -infty is UpperBound of A by XXREAL_2:def 3;
+    then -infty >= x by A1, XXREAL_2:def 1;
+    then contradiction by XXREAL_0:12;
+    hence thesis;
+  end;
+  suppose inf A <> +infty & sup A <> -infty;
     hence thesis;
   end;
 end;
@@ -439,12 +468,12 @@ end;
 
 theorem ThExpansionIsLonger:
   for I being Interval
-  for h being Real st h >= 0
+  for h being Real st h > 0
   holds diameter(expand_interval(I, h)) <= diameter(I) + h
 proof
   let I be Interval;
   let h be Real;
-  assume A1: 0 <= h;
+  assume A1: h > 0;
   set J = expand_interval(I, h);
   per cases;
   suppose A2: I = {};
@@ -454,27 +483,45 @@ proof
     hence diameter(J) <= diameter(I) + h by A1, A3;
   end;
   suppose A4: I <> {};
-    then A5: diameter(I) = sup I - inf I by MEASURE5:def 6;
-    reconsider d = h/2 as R_eal;
-::>                           *4
-    reconsider lo = inf I - d as R_eal;
-    reconsider hi = sup I + d as R_eal;
-    A6: J = ]. lo, hi .[ by A1, A4, Def4;
-    A7: lo < hi;
-::>           *4
-    A8: lo < inf I;
-::>              *4
-    A8: diameter(J) = hi - lo by A6, A7, MEASURE5:5;
+    A5: diameter(I) = sup I - inf I by A4, MEASURE5:def 6;
+    reconsider d = h/2 as R_eal by XREAL_0:def 1, NUMBERS:31;
+    A6: J = ]. inf I - d, sup I + d .[ by A1, A4, Def4;
+    A7: inf I - d < sup I + d
+    proof
+      assume sup I + d <= inf I - d;
+      then J = {} by A6, XXREAL_1:28;
+      then I c= {} by A1, ThExpansionContainsOrig;
+      hence contradiction by A4;
+    end;
+    A8: inf I <> +infty & sup I <> -infty & sup I + d <> -infty
+      by A4, A7, ThInfSupOfRealSet, XXREAL_0:5;
     A9: diameter(J) = (sup I + d) - (inf I - d) by A6, A7, MEASURE5:5
-                   .= (sup I + d) + (-(inf I - d)) by XXREAL_3:def 4
-                   .= (sup I + d) + (d - inf I) by XXREAL_3:26
-                   .= sup I + d + (d + (-inf I)) by XXREAL_3:def 4;
-::     then diameter(J) = sup I + d + d + (-inf I) by XXREAL_3:def 2;
-::                    .= sup I + (-inf I) + d + d :: by XXREAL_3:def 4
-::                    .= diameter(I) + (d + d) by A8;
-    thus diameter(J) <= diameter(I) + h by A1, A9, XXREAL_3:105;
-::>                                      *4
+                   .= sup I + d - inf I + d by A8, XXREAL_3:32
+                   .= sup I - inf I + d + d by A8, XXREAL_3:30
+                   .= sup I - inf I + (d + d) by A8, XXREAL_3:29;
+    thus diameter(J) <= diameter(I) + h by A1, A5, A9, XXREAL_3:105;
   end;
+end;
+
+theorem ThSumSubadditive:
+  for S1, S2, S3 being nonnegative sequence of ExtREAL
+  st (for n being Element of NAT holds S1.n <= S2.n + S3.n)
+  holds SUM(S1) <= SUM(S2) + SUM(S3)
+proof
+  let S1, S2, S3 be nonnegative sequence of ExtREAL;
+  assume A1: for n being Element of NAT holds S1.n <= S2.n + S3.n;
+  deffunc F(Element of NAT) = S2.$1 + S3.$1;
+  consider S4 being Function of NAT, ExtREAL such that
+    A2: for n being Element of NAT holds S4.n = F(n) from FUNCT_2:sch 4;
+  now
+    let n be Element of NAT;
+    S4.n = S2.n + S3.n by A2;
+    hence S1.n <= S4.n by A1;
+  end;
+  then A3: SUM(S1) <= SUM(S4) by SUPINF_2:43;
+  for n being Element of NAT holds S4.n = S2.n + S3.n by A2;
+  then SUM(S4) <= SUM(S2) + SUM(S3) by MEASURE7:4;
+  hence thesis by A3, XXREAL_0:2;
 end;
 
 theorem ThExtendToOpenIntervals:
@@ -488,24 +535,43 @@ proof
   let F be Interval_Covering of A;
   let h be Real;
   assume A1: h > 0;
-  deffunc C() = NAT;
-  deffunc D() = bool REAL;
-  deffunc I(Element of NAT) = expand_interval(F.$1, h / (2 |^ $1));
+  consider S being sequence of ExtREAL such that
+    A2: (for n being Nat holds S.n > 0) & SUM(S) < h by A1, MEASURE6:4;
+  A3: S is nonnegative
+  proof
+    now
+      let n be Element of NAT;
+      thus S.n >= 0 by A2;
+    end;
+    hence thesis by SUPINF_2:39;
+  end;
+  rng S c= REAL
+  proof
+    now
+      let x be Element of (rng S);
+      A4: ex n being object st n in dom S & x = S.n by FUNCT_1:def 3;
+      h < +infty by XREAL_0:def 1, XXREAL_0:9;
+      then SUM(S) < +infty by A2, XXREAL_0:2;
+      hence x in REAL by A3, A4, MEASURE6:7;
+    end;
+    hence thesis by SUBSET_1:27;
+  end;
+  then reconsider R = S as Function of dom(S), REAL by FUNCT_2:2;
+  deffunc I(Element of NAT) = expand_interval(F.$1, R.$1);
   consider G being Function of NAT, bool REAL such that
-    A2: for n being Element of NAT holds G.n = I(n) from FUNCT_2:sch 4;
-  A3: A c= union (rng F) c= union (rng G)
+    A5: for n being Element of NAT holds G.n = I(n) from FUNCT_2:sch 4;
+  A6: A c= union (rng F) c= union (rng G)
   proof
     thus A c= union (rng F) by MEASURE7:def 2;
     now
       let x be set;
       assume x in union (rng F);
       then consider n being Element of NAT such that
-        A4: x in F.n by ThElementOfSequenceUnion;
-      2 |^ n > 0 by PREPOWER:6;
-      then h / (2 |^ n) > 0 by A1, XREAL_1:139;
+        A7: x in F.n by ThElementOfSequenceUnion;
+      S.n > 0 by A2;
       then F.n c= I(n) by A1, ThExpansionContainsOrig;
-      then x in I(n) by A4;
-      then x in G.n by A2;
+      then x in I(n) by A7;
+      then x in G.n by A5;
       hence x in union (rng G) by ThElementOfSequenceUnion;
     end;
     hence union (rng F) c= union (rng G);
@@ -513,25 +579,35 @@ proof
   for n being Element of NAT holds G.n is Interval
   proof
     let n be Element of NAT;
-    G.n = I(n) by A2;
+    G.n = I(n) by A5;
     hence thesis;
   end;
   then reconsider G as Interval_Covering of A
-    by A3, MEASURE7:def 2, XBOOLE_1:1;
+    by A6, MEASURE7:def 2, XBOOLE_1:1;
   for n being Element of NAT holds G.n is open_interval
   proof
     let n be Element of NAT;
-    G.n = I(n) by A2;
+    G.n = I(n) by A5;
     hence thesis;
   end;
   then reconsider G as Open_Interval_Covering of A by Def2;
   take G;
-  thus vol(G) <= vol(F) + h;
-::>                       *4
+  A7: vol(F) = SUM(F vol) & vol(G) = SUM(G vol) by MEASURE7:def 6;
+  now
+    let n be Element of NAT;
+    A8: R.n > 0 by A2;
+    A9: (F vol).n = diameter(F.n) & (G vol).n = diameter(G.n) by MEASURE7:def 4;
+    G.n = expand_interval(F.n, R.n) by A5;
+    hence (G vol).n <= (F vol).n + S.n by A8, A9, ThExpansionIsLonger;
+  end;
+  then A10: vol(G) <= vol(F) + SUM(S) by A7, A3, ThSumSubadditive;
+  SUM(S) < h by A2;
+  then vol(F) + SUM(S) <= vol(F) + h by XXREAL_3:35;
+  hence vol(G) <= vol(F) + h by A10, XXREAL_0:2;
 end;
 
 theorem ThQuantitativeHeineBorel:
-  for a, b being Real st a <= b holds
+  for a, b being Real st a <= b
   for F being Open_Interval_Covering of [.a, b.]
   holds vol(F) >= b - a;
 ::>                   *4
